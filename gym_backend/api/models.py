@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-import datetime
 from .custom_fields import DayOfTheWeekField, FrequencyField
 import pandas as pd
 
