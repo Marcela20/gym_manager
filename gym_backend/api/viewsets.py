@@ -1,6 +1,11 @@
-from .models import Student, Group, Room, Instructor, Event
+from .models import Student, Group, Room, Instructor, Event, Dates
 from rest_framework import mixins, generics
-from .serializers import EventSerialzier, StudentSerializer, GroupSerializer, InstructorSerializer, RoomSerialzier
+from rest_framework.response import Response
+from .serializers import EventSerialzier, StudentSerializer, GroupSerializer, InstructorSerializer, RoomSerialzier, DatesSerialzier
+from rest_framework.views import APIView
+from rest_framework import status
+from .get_dates import get_dates, generate_group_view
+
 
 class StudentDetail(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
@@ -20,7 +25,6 @@ class StudentDetail(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
 
 
 class StudentAll(mixins.ListModelMixin,
@@ -48,6 +52,7 @@ class GroupAll(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
         return self.create(request, *args, **kwargs)
 
 class GroupDetail(mixins.RetrieveModelMixin,
@@ -184,3 +189,62 @@ class EventAll(mixins.ListModelMixin,
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+
+class DatesDetail(mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.DestroyModelMixin,
+                  generics.GenericAPIView,
+                  APIView):
+    queryset = Dates.objects.all()
+    serializer_class = DatesSerialzier
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, pk, format=None):
+        group = request.data.get('group', None)
+        data = {"values": request.data, "group":group}
+        instance = Dates.objects.get(pk=pk)
+        serializer =  DatesSerialzier(instance, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+
+class DatesAll(mixins.ListModelMixin,
+              mixins.CreateModelMixin,
+              generics.GenericAPIView,
+              APIView):
+
+    queryset = Dates.objects.all()
+    serializer_class = DatesSerialzier
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get("group"):
+            dates = Dates.objects.all().filter(group=request.GET.get("group"))
+            data = DatesSerialzier(dates, many=True)
+            a = get_dates(dates)
+            group_view = generate_group_view(a, Group.objects.get(pk=request.GET.get('group')))
+            return Response(group_view)
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, format=None):
+        group = request.data.get('group', None)
+        data = {"values": request.data, "group":group}
+        serializer = DatesSerialzier(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            values = serializer.data['values']
+            serializer.data['values']['AttributeId'] = serializer.data['pk']
+            Dates.objects.filter(pk=serializer.data['pk']).update(values=values)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
