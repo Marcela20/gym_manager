@@ -3,8 +3,11 @@ import Header from "./components/Header";
 import Student_DOM from "./components/Student_DOM";
 import Instructor_DOM from "./components/Instructor_DOM";
 import Group_DOM from  "./components/Group_DOM";
-import Calendar from "./components/calendar";
+import Calendar from "./components/calendar_new";
+import CsvDataReader from "./components/Table";
+
 class App extends Component {
+
   render() {
     return (
       <Fragment>
@@ -13,13 +16,15 @@ class App extends Component {
         <Student_DOM />
         <h4 className="text-center">instructors</h4>
         <Instructor_DOM />
+        <h4 className="text-center">groups</h4>
         <Group_DOM />
         <Calendar />
-
-
+        <CsvDataReader />
       </Fragment>
     );
+
   }
 }
 
 export default App;
+

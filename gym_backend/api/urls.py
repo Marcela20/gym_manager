@@ -2,7 +2,8 @@ from django.urls import path
 from .viewsets import (
     StudentAll, StudentDetail, GroupDetail,
     GroupAll, RoomAll, RoomDetail,
-    InstructorAll, InstructorDetail, EventAll, EventDetail)
+    InstructorAll, InstructorDetail, EventAll, EventDetail,
+    DatesAll, DatesDetail)
 
 urlpatterns = [
     path('api/student/', StudentAll.as_view()),
@@ -14,7 +15,9 @@ urlpatterns = [
     path('api/instructor/<int:pk>', InstructorDetail.as_view()),
     path('api/instructor/', InstructorAll.as_view()),
     path('api/event/', EventAll.as_view()),
-    path('api/event/<int:pk>', EventDetail.as_view())
+    path('api/event/<int:pk>', EventDetail.as_view()),
+    path('api/calendar/', DatesAll.as_view()),
+    path('api/calendar/<int:pk>', DatesDetail.as_view()),
 
 
 ]

@@ -20,9 +20,11 @@ class DayOfTheWeekField(models.CharField):
 
 class FrequencyField(models.CharField):
     FREQUENCY = {
-    '1' : 'weekly',
-    '2' : 'biweekly',
-    '3' : 'monthly',
+    '1' : 'DAILY',
+    '2' : 'WEEKLY',
+    '3' : 'BIWEEKLY',
+    '4' : 'MONTHLY',
+    '5' : 'YEARLY'
     }
 
     def __init__(self, *args, **kwargs):

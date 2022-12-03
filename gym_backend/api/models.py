@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils import timezone
-import datetime
 from .custom_fields import DayOfTheWeekField, FrequencyField
 import pandas as pd
 
@@ -38,14 +37,39 @@ class Room(models.Model):
 
 class Event(models.Model):
     dayOfTheWeek = DayOfTheWeekField()
-    hour = models.TimeField()
+    start_hour = models.TimeField()
+    stop_hour = models.TimeField(default='')
     repeat = FrequencyField()
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
     start = models.DateField(default=timezone.now)
-    stop = models.DateField(null=True, blank=True)
+    stop = models.DateField(default=timezone.now)
 
     def __str__(self):
-        return f'{self.dayOfTheWeek} {self.hour} {self.room}'
+        return f'{self.dayOfTheWeek} {self.start_hour} {self.room}'
+
+    @property
+    def frequency(self):
+        FREQUENCY = {
+            '1' : 'DAILY',
+            '2' : 'WEEKLY',
+            '3' : 'BIWEEKLY',
+            '4' : 'MONTHLY',
+            '5' : 'YEARLY'
+        }
+        return FREQUENCY.get(self.repeat)
+
+    @property
+    def days(self):
+        FREQS  = {
+            1: 'MO',
+            2: 'TU',
+            3: 'WE',
+            4: 'TH',
+            5: 'FR',
+            6: 'SA',
+            7: 'SU'
+        }
+        return FREQS.get(int(self.dayOfTheWeek))
 
     @property
     def dates(self):
@@ -64,25 +88,23 @@ class Event(models.Model):
             freq=FREQS.get(self.dayOfTheWeek)).strftime('%m/%d/%Y').tolist()
 
 
+
+
 class Group(models.Model):
     name = models.CharField(max_length=20, default='')
     members = models.ManyToManyField(Student, related_name='members')
-    limit = models.IntegerField(default=10)
-    level = models.IntegerField(default=1)
+    limit = models.IntegerField(default=10, null=True)
+    level = models.IntegerField(default=1, null=True)
     instructor = models.ForeignKey(Instructor, on_delete=models.SET_NULL, null=True)
-    time = models.ManyToManyField(Event, related_name='events')
-    # cancelled =  models.DateField(auto_now_add=False, blank=True, null=True)
 
     def __str__(self):
         return self.name
 
-    def get_dates(self):
-        dates = []
-        if len(self.time.all()) == 1:
-            return self.time[0].dates
-        for d in self.time.all():
-            dates += d.dates
-        return dates
+
+class Dates(models.Model):
+    values = models.JSONField(blank=True, null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
+
 
 
 
