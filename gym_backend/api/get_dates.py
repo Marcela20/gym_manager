@@ -32,7 +32,7 @@ def handle_reccurence(d):
     }
 
     periods = d.get('COUNT', None)
-    interval = d.get('INTERVAL')
+    interval = d.get('INTERVAL', '')
     end = d.get('UNTIL', None)
 
     if periods == None and end==None:
@@ -112,7 +112,6 @@ def generate_group_view(dates, group):
     group_view.index.name = 'students'
     group_view.reset_index(inplace=True)
     group_view = group_view.astype(str)
-    print(json.loads(group_view.to_json(orient='index')))
     column_names = dates
     column_names = ['students', *column_names]
     dirty = []

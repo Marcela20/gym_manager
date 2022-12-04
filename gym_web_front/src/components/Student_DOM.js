@@ -8,7 +8,7 @@ import axios from "axios";
 import { API_URL } from ".";
 
 
-class Student_DOM extends Component {
+class StudentDom extends Component {
   state = {
     students: []
   };
@@ -46,4 +46,4 @@ class Student_DOM extends Component {
 }
 
 
-export default Student_DOM;
+export default StudentDom;

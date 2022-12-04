@@ -10,7 +10,7 @@ import axios from "axios";
 import { API_GROUP_URL } from ".";
 
 
-class Group_DOM extends Component {
+class GroupDom extends Component {
   state = {
     groups: []
   };
@@ -47,4 +47,4 @@ class Group_DOM extends Component {
   }
 }
 
-export default Group_DOM;
+export default GroupDom;

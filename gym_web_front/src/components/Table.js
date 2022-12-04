@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+
 import {
   Col,
   Row,
@@ -46,8 +47,7 @@ class CsvDataReader extends Component {
 
                 return(
                     <div className="App">
-                    <Container className="themed-container" fluid={true}>
-                      <h1>The Using of Reactstrap and React-Table</h1>
+                    <Container className="themed-container" >
                       <div>
                         <XTable columns={apiData.columns} loading={false} data={apiData.rowData} />
                       </div>
@@ -67,13 +67,15 @@ class CsvDataReader extends Component {
     render() {
       return (
         <div className="animated fadeIn">
-          <Row>
+        <Container className="themed-container" >
+            <Row>
             <Col md={12}>
-              <h3>Data Reader Starter</h3>
               <hr/>
               {this.renderCsvDataResults()}
             </Col>
-          </Row>
+
+            </Row>
+          </Container>
         </div>
     );
   }

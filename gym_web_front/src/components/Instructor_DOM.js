@@ -10,7 +10,7 @@ import axios from "axios";
 import { API_INSTRUCTOR_URL } from ".";
 
 
-class Instructor_DOM extends Component {
+class InstructorDom extends Component {
   state = {
     instructors: []
   };
@@ -47,4 +47,4 @@ class Instructor_DOM extends Component {
   }
 }
 
-export default Instructor_DOM;
+export default InstructorDom;

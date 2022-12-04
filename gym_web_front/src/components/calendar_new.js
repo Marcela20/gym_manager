@@ -1,9 +1,8 @@
 import React from 'react';
-
+import { Container } from "reactstrap";
 import Scheduler, { Resource} from 'devextreme-react/scheduler';
 
 import {API_CALENDAR, API_NEW_CALENDAR, API_GROUP_URL} from ".";
-import { CheckBox } from 'devextreme-react/check-box';
 import notify from 'devextreme/ui/notify';
 import 'whatwg-fetch';
 import CustomStore from 'devextreme/data/custom_store';
@@ -94,7 +93,7 @@ class Calendar extends React.Component {
   render() {
     return (
 
-      <React.Fragment>
+      <Container>
         <Scheduler
           dataSource={DataSource}
           views={views}
@@ -114,7 +113,7 @@ class Calendar extends React.Component {
           />
 
         </Scheduler>
-      </React.Fragment>
+      </Container>
     );
   }
 

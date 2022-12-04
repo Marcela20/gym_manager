@@ -1,12 +1,33 @@
-FROM node:14.17.3
 
+# Use a Node 16 base image
+FROM node:16-alpine 
+# Set the working directory to /app inside the container
 WORKDIR /gym_web_front
-
+# Copy app files
 COPY . .
-
-RUN npm install
-RUN npm install react-scripts@3.4.1 -g 
-
+# ==== BUILD =====
+# Install dependencies (npm ci makes sure the exact versions in the lockfile gets installed)
+RUN npm ci
+# Build the app
+RUN npm run build
+RUN npm install --global serve
+# ==== RUN =======
+# Set the env to "production"
+# ENV NODE_ENV production
+ENV CHOKIDAR_USEPOLLING true
+# Expose the port on which the app will be running (3000 is the default that `serve` uses)
 EXPOSE 3000
+
+# Start the app
+# CMD [ "npx", "serve", "build" ]
+
+# FROM node:17.3-alpine
+
+# WORKDIR /gym_web_front
+# COPY package.json .
+# RUN npm install --global serve
+# RUN npm install
+# ENV CHOKIDAR_USEPOLLING true
+# COPY . .
 
 CMD ["npm", "start"]

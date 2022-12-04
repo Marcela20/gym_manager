@@ -3,7 +3,7 @@ from .viewsets import (
     StudentAll, StudentDetail, GroupDetail,
     GroupAll, RoomAll, RoomDetail,
     InstructorAll, InstructorDetail, EventAll, EventDetail,
-    DatesAll, DatesDetail)
+    DatesAll, DatesDetail, Attendance)
 
 urlpatterns = [
     path('api/student/', StudentAll.as_view()),
@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/event/<int:pk>', EventDetail.as_view()),
     path('api/calendar/', DatesAll.as_view()),
     path('api/calendar/<int:pk>', DatesDetail.as_view()),
+    path('api/attendance/<int:id>', Attendance.as_view()),
+
 
 
 ]

@@ -52,7 +52,6 @@ class GroupAll(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        print(request.data)
         return self.create(request, *args, **kwargs)
 
 class GroupDetail(mixins.RetrieveModelMixin,
@@ -238,6 +237,8 @@ class DatesAll(mixins.ListModelMixin,
         return self.list(request, *args, **kwargs)
 
     def post(self, request, format=None):
+        # if request.GET.get("group"):
+        #     pass
         group = request.data.get('group', None)
         data = {"values": request.data, "group":group}
         serializer = DatesSerialzier(data=data)
@@ -248,3 +249,11 @@ class DatesAll(mixins.ListModelMixin,
             Dates.objects.filter(pk=serializer.data['pk']).update(values=values)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Attendance(APIView):
+            
+    def get(self, request, id, *args, **kwargs):
+       pass
+
+    def post(self, request, id, format=None):
+        group = Group.objects.get(id)
