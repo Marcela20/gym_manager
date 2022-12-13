@@ -1,6 +1,6 @@
 import pandas as pd
 import json
-
+from .models import Student, Date
 
 
 def handle_reccurence(d):
@@ -10,7 +10,7 @@ def handle_reccurence(d):
             'MO': 'W-MON',
             'TU': 'W-TUE',
             'WE': 'W-WED',
-            'TH': 'W-THR',
+            'TH': 'W-THU',
             'FR': 'W-FRI',
             'SA': 'W-SAT',
             'SU': 'W-SUN'
@@ -35,7 +35,7 @@ def handle_reccurence(d):
     interval = d.get('INTERVAL', '')
     end = d.get('UNTIL', None)
 
-    if periods == None and end==None:
+    if periods is None and end is None:
         periods = 50
 
     if d.get('FREQ') == 'WEEKLY':
@@ -68,6 +68,7 @@ def get_dates(query):
     # fields = ['recurrenceException', 'recurrenceRule', 'startDate', 'endDate']
     for entry in query:
         vals = entry.values
+        id = entry.id
 
         start = vals['startDate']
         reccurence = vals.get('recurrenceRule', None)
@@ -76,51 +77,47 @@ def get_dates(query):
             d = {x.split('=')[0]:x.split('=')[1] for x in rec}
             if handle_reccurence(d):
                 for dates in handle_reccurence(d)['rec']:
-                    all_dates = pd.concat([all_dates, (pd.date_range(start=start, **dates)+ handle_reccurence(d).get('delta', pd.Timedelta(0))).strftime('%d/%m/%Y').to_series()])
+                    all_dates = pd.concat([all_dates, (pd.date_range(start=start, **dates)+ handle_reccurence(d).get('delta', pd.Timedelta(0))).strftime('%Y-%m-%d').to_series()])
         else:
-            all_dates = pd.concat([all_dates, pd.date_range(start=start, end=vals['endDate']).strftime('%d/%m/%Y').to_series()])
+            all_dates = pd.concat([all_dates, pd.date_range(start=start, end=vals['endDate']).strftime('%Y-%m-%d').to_series()])
 
         if vals.get('recurrenceException'):
             excluded = pd.to_datetime([x for x in vals.get('recurrenceException').split(',')]).to_list()
             for i in excluded:
                 all_dates = all_dates.drop(all_dates.loc[all_dates == i].index)
+        a = all_dates.to_frame()
+        a = a.assign(subgroup=id)
+    print(all_dates.T.drop_duplicates().shape)     
 
     return all_dates.T.drop_duplicates()
 
-# def generate_group_view(dates, group):
-#     members = group.members.all().values_list('name', flat = True)
-#     dates = dates.drop_duplicates()
-#     final_row_data = []
-#     group_view = pd.DataFrame(index=members, columns=dates).fillna(0)
-#     group_view.index.name = 'students'
-#     group_view.reset_index(inplace=True)
-#     print(group_view.to_json(orient='index'))
-#     row_count = group_view.shape[0]
-#     column_count = group_view.shape[1]
-#     column_names = dates
-#     for index, rows in group_view.iterrows():
-#         final_row_data.append(rows.to_dict())
-#     json_result = [{'rows': row_count, 'cols': column_count, 'columns': ['students', *column_names], 'rowData': final_row_data}]
-#     return(json_result)
 
+def generate_dates(dates, subgroup):
+    dates = dates.drop_duplicates()
+    for index, date in dates.iteritems():
+        new_date = Date.objects.get_or_create(date=date)
+        new_date[0].subgroups.add(subgroup)
 
 def generate_group_view(dates, group):
-    members = group.members.all().values_list('name', flat = True)
-    dates = dates.drop_duplicates()
+
+    members_ids = set(group.subgroups.all().values_list('members', flat = True))
+    members = Student.objects.filter(id__in=members_ids)
     final_row_data = []
-    group_view = pd.DataFrame(index=members, columns=dates).fillna(0)
+    group_view = pd.DataFrame(index=members, columns=dates.index).fillna(0)
     group_view.index.name = 'students'
     group_view.reset_index(inplace=True)
     group_view = group_view.astype(str)
-    column_names = dates
-    column_names = ['students', *column_names]
+    data = list(zip(dates.index, dates['subgroup']))
+    column_names = [('students', ''), *data]
     dirty = []
     for elem in column_names:
         dirty.append(
             {
-            'Header': elem,
-            'accessor': str(elem),
-            'className': "t-cell-1 text-left"
+            'Header': elem[0],
+            'accessor': str(elem[0]),
+            'className': "t-cell-1 text-left",
+            'subgroup': elem[1], 
+            'label': elem[1],
             }
         )
     for index, rows in group_view.iterrows():
@@ -128,3 +125,33 @@ def generate_group_view(dates, group):
     json_result = [{'columns': dirty, 'rowData': json.loads(group_view.to_json(orient='index')).values()}]
     return(json_result)
 
+def get_dates_new(query):
+    attendance = pd.DataFrame(columns=['subgroup'])
+    # fields = ['recurrenceException', 'recurrenceRule', 'startDate', 'endDate']
+    for entry in query:
+        vals = entry.values
+        id = entry.id
+
+        start = vals['startDate']
+        reccurence = vals.get('recurrenceRule', None)
+        if reccurence:
+            rec = reccurence.split(';')
+            d = {x.split('=')[0]:x.split('=')[1] for x in rec}
+            if handle_reccurence(d):
+                for dates in handle_reccurence(d)['rec']:
+                    df = (pd.date_range(start=start, **dates)+ handle_reccurence(d).get('delta', pd.Timedelta(0))).strftime('%Y-%m-%d').to_frame()
+                    df = df.assign(subgroup=id)
+                    attendance = pd.concat([attendance, 
+                    df,
+                     ])
+        else:
+            df = pd.date_range(start=start, end=vals['endDate']).strftime('%Y-%m-%d').to_series()
+            df = df.assign(subgroup=id)
+            attendance = pd.concat([attendance, df])
+
+        if vals.get('recurrenceException'):
+            excluded = pd.to_datetime([x for x in vals.get('recurrenceException').split(',')]).to_list()
+            for i in excluded:
+                attendance = attendance.drop(attendance.loc[attendance == i].index)
+
+    return attendance

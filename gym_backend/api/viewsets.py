@@ -1,10 +1,11 @@
-from .models import Student, Group, Room, Instructor, Event, Dates
+from .models import Student, Group, Room, Instructor, Date, Attendance, SubGroup
+from calendar_groups.models import Calendar
 from rest_framework import mixins, generics
 from rest_framework.response import Response
-from .serializers import EventSerialzier, StudentSerializer, GroupSerializer, InstructorSerializer, RoomSerialzier, DatesSerialzier
+from .serializers import CalendarSerialzier, StudentSerializer, GroupSerializer, InstructorSerializer, RoomSerialzier, DateSerialzier, AttendanceSerialzier, SubGroupSerializer
 from rest_framework.views import APIView
 from rest_framework import status
-from .get_dates import get_dates, generate_group_view
+from .get_dates import get_dates, generate_group_view, generate_dates, get_dates_new
 
 
 class StudentDetail(mixins.RetrieveModelMixin,
@@ -142,26 +143,12 @@ class RoomAll(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class InstructorAll(mixins.ListModelMixin,
-              mixins.CreateModelMixin,
-              generics.GenericAPIView):
-
-    queryset = Instructor.objects.all()
-    serializer_class = InstructorSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-
-
-class EventDetail(mixins.RetrieveModelMixin,
+class DateDetail(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.DestroyModelMixin,
                   generics.GenericAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerialzier
+    queryset = Date.objects.all()
+    serializer_class = RoomSerialzier
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -175,13 +162,12 @@ class EventDetail(mixins.RetrieveModelMixin,
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
 
-
-class EventAll(mixins.ListModelMixin,
+class DateAll(mixins.ListModelMixin,
               mixins.CreateModelMixin,
               generics.GenericAPIView):
 
-    queryset = Event.objects.all()
-    serializer_class = EventSerialzier
+    queryset = Date.objects.all()
+    serializer_class = DateSerialzier
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -190,13 +176,75 @@ class EventAll(mixins.ListModelMixin,
         return self.create(request, *args, **kwargs)
 
 
-class DatesDetail(mixins.RetrieveModelMixin,
+class AttendanceDetail(mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.DestroyModelMixin,
+                  generics.GenericAPIView):
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerialzier
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class AttendanceAll(mixins.ListModelMixin,
+              mixins.CreateModelMixin,
+              generics.GenericAPIView):
+
+    queryset = Attendance.objects.all()
+    serializer_class = AttendanceSerialzier
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+class SubGroupDetail(mixins.RetrieveModelMixin,
+                  mixins.UpdateModelMixin,
+                  mixins.DestroyModelMixin,
+                  generics.GenericAPIView):
+    queryset = SubGroup.objects.all()
+    serializer_class = SubGroupSerializer
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+class SubGroupAll(mixins.ListModelMixin,
+              mixins.CreateModelMixin,
+              generics.GenericAPIView):
+
+    queryset = SubGroup.objects.all()
+    serializer_class = SubGroupSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+class CalendarDetail(mixins.RetrieveModelMixin,
                   mixins.UpdateModelMixin,
                   mixins.DestroyModelMixin,
                   generics.GenericAPIView,
                   APIView):
-    queryset = Dates.objects.all()
-    serializer_class = DatesSerialzier
+    queryset = Calendar.objects.all()
+    serializer_class = CalendarSerialzier
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
@@ -204,8 +252,8 @@ class DatesDetail(mixins.RetrieveModelMixin,
     def put(self, request, pk, format=None):
         group = request.data.get('group', None)
         data = {"values": request.data, "group":group}
-        instance = Dates.objects.get(pk=pk)
-        serializer =  DatesSerialzier(instance, data=data)
+        instance = Calendar.objects.get(pk=pk)
+        serializer =  CalendarSerialzier(instance, data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -215,45 +263,43 @@ class DatesDetail(mixins.RetrieveModelMixin,
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request, pk, *args, **kwargs):
+        if SubGroup.objects.filter(pk=pk).exists():
+            SubGroup.objects.get(pk=pk).delete()
         return self.destroy(request, *args, **kwargs)
 
 
-class DatesAll(mixins.ListModelMixin,
+class CalendarAll(mixins.ListModelMixin,
               mixins.CreateModelMixin,
               generics.GenericAPIView,
               APIView):
 
-    queryset = Dates.objects.all()
-    serializer_class = DatesSerialzier
+    queryset = Calendar.objects.all()
+    serializer_class = CalendarSerialzier
 
     def get(self, request, *args, **kwargs):
         if request.GET.get("group"):
-            dates = Dates.objects.all().filter(group=request.GET.get("group"))
-            data = DatesSerialzier(dates, many=True)
-            a = get_dates(dates)
+            dates = Calendar.objects.all().filter(group=request.GET.get("group"))
+            a = get_dates_new(dates)
             group_view = generate_group_view(a, Group.objects.get(pk=request.GET.get('group')))
             return Response(group_view)
         return self.list(request, *args, **kwargs)
 
     def post(self, request, format=None):
-        # if request.GET.get("group"):
-        #     pass
         group = request.data.get('group', None)
         data = {"values": request.data, "group":group}
-        serializer = DatesSerialzier(data=data)
+        serializer = CalendarSerialzier(data=data)
         if serializer.is_valid():
             serializer.save()
             values = serializer.data['values']
             serializer.data['values']['AttributeId'] = serializer.data['pk']
-            Dates.objects.filter(pk=serializer.data['pk']).update(values=values)
+            calendar_objects = Calendar.objects.filter(pk=serializer.data['pk'])
+            calendar_objects.update(values=values)
+            subgroup = SubGroup.objects.get_or_create(attribute_id=serializer.data['values']['AttributeId'])
+            Group.objects.get(pk=group).subgroups.add(serializer.data['values']['AttributeId'])
+            series_dates = get_dates(calendar_objects)
+            generate_dates(series_dates, subgroup[0].attribute_id)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class Attendance(APIView):
-            
-    def get(self, request, id, *args, **kwargs):
-       pass
-
-    def post(self, request, id, format=None):
-        group = Group.objects.get(id)
