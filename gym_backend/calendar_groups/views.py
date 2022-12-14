@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from api.models import Group, Dates
+from api.models import Group
+from .models import Calendar
 from datetime import datetime
 
 @api_view(['GET'])
@@ -70,6 +71,6 @@ def dates_one(request, pk):
 def new_calendar(request):
     """returns all enevents for all groups.
         should be narrowed to a specific date range"""
-    dates = list(Dates.objects.all().values_list('values', flat=True))
+    dates = list(Calendar.objects.all().values_list('values', flat=True))
     dates_jsons = {'data':dates}
     return Response(dates_jsons)

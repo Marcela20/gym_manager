@@ -1,3 +1,6 @@
 from django.db import models
+from api.models import Group
 
-# Create your models here.
+class Calendar(models.Model):
+    values = models.JSONField(blank=True, null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)

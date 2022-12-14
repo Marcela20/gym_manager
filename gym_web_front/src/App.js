@@ -4,7 +4,8 @@ import StudentDom from "./components/Student_DOM";
 import InstructorDom from "./components/Instructor_DOM";
 import GroupDom from  "./components/Group_DOM";
 import Calendar from "./components/calendar_new";
-import CsvDataReader from "./components/Table";
+import Table from "./components/Table_flex";
+
 
 class App extends Component {
 
@@ -19,7 +20,7 @@ class App extends Component {
         <h4 className="text-center">groups</h4>
         <GroupDom />
         <Calendar />
-        <CsvDataReader />
+        <Table />
       </Fragment>
     );
 
