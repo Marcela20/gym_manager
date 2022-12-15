@@ -87,7 +87,7 @@ def get_dates(query):
                 all_dates = all_dates.drop(all_dates.loc[all_dates == i].index)
         a = all_dates.to_frame()
         a = a.assign(subgroup=id)
-    print(all_dates.T.drop_duplicates().shape)     
+    print(all_dates.T.drop_duplicates().shape)
 
     return all_dates.T.drop_duplicates()
 
@@ -108,16 +108,22 @@ def generate_group_view(dates, group):
     group_view.reset_index(inplace=True)
     group_view = group_view.astype(str)
     data = list(zip(dates.index, dates['subgroup']))
-    column_names = [('students', ''), *data]
-    dirty = []
+    column_names = data
+    dirty = [
+        {
+            'Header': 'students',
+            'accessor': 'students',
+            'subgroup': '',
+            'label':'student_name'
+        }]
+
     for elem in column_names:
         dirty.append(
             {
             'Header': elem[0],
             'accessor': str(elem[0]),
-            'className': "t-cell-1 text-left",
-            'subgroup': elem[1], 
-            'label': elem[1],
+            'subgroup': elem[1],
+            'label':'date_cell'
             }
         )
     for index, rows in group_view.iterrows():
@@ -141,7 +147,7 @@ def get_dates_new(query):
                 for dates in handle_reccurence(d)['rec']:
                     df = (pd.date_range(start=start, **dates)+ handle_reccurence(d).get('delta', pd.Timedelta(0))).strftime('%Y-%m-%d').to_frame()
                     df = df.assign(subgroup=id)
-                    attendance = pd.concat([attendance, 
+                    attendance = pd.concat([attendance,
                     df,
                      ])
         else:
